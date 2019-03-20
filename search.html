@@ -413,7 +413,8 @@
             //添加过滤条件
             selectFilter(key,option){
                 //从filter中复制属性到obj这样watch就可以监控都filter的变化
-                const {...obj} = this.search.filter;
+                // const {...obj} = this.search.filter;
+                const obj = {...this.search.filter}
                 obj[key] = option;
                 //添加到search.filter中
                 this.search.filter = obj;
