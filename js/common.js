@@ -247,7 +247,7 @@ Date.prototype.format = function (format) {
 var has = Object.prototype.hasOwnProperty;
 
 var defaults = {
-    allowDots: false,
+    allowDots: true,
     allowPrototypes: false,
     arrayLimit: 20,
     decoder: utils.decode,
@@ -626,4 +626,8 @@ const ly = leyou = {
      * 将请求参数字符串格式化为js对象
      */
     parse,
+    //验证用户是否登陆
+    verifyUser(){
+      return this.http.get("/auth/verify");
+    },
 }

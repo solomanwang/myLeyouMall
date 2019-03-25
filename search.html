@@ -118,7 +118,7 @@
                 <div class="fl key">{{f.k === 'cid3' ? '分类':f.k}}</div>
                 <div class="fl value">
                     <ul class="type-list">
-                        <li v-for="(o,j) in f.options" :key="j" v-if="o" @click="selectFilter(f.k,o || o,id)">
+                        <li v-for="(o,j) in f.options" :key="j" v-if="o" @click="selectFilter(f.k,o.id || o)">
                             <a v-text="o.name || o"></a>
                         </li>
                     </ul>
@@ -129,8 +129,8 @@
                 <div class="fl key brand">品牌</div>
                 <div class="value logos">
                     <ul class="logo-list" v-for="(o,j) in f.options" :key="j">
-                        <li v-if="o.image"><img :src="o.image" @click="selectFilter(f.k,o || o.id)"/></li>
-                        <li v-else><a href="#" v-text="o.name" @click="selectFilter(f.k,o || o.id)"></a></li>
+                        <li v-if="o.image"><img :src="o.image" @click="selectFilter(f.k,o.id || o)"/></li>
+                        <li v-else><a href="#" v-text="o.name" @click="selectFilter(f.k,o.id || o)"></a></li>
                     </ul>
                 </div>
                 <div class="fl ext">
@@ -362,6 +362,8 @@
                     }
                     // 把请求参数写到url中 刷新就不会重置页面
                     location.search = "?" + ly.stringify(this.search);
+                    // window.location.href = "http://www.leyou.com/search.html?"+ly.stringify(this.search);
+                    // console.log("路径=",ly.stringify(this.search))
                 }
             }
         },
@@ -413,8 +415,7 @@
             //添加过滤条件
             selectFilter(key,option){
                 //从filter中复制属性到obj这样watch就可以监控都filter的变化
-                // const {...obj} = this.search.filter;
-                const obj = {...this.search.filter}
+                const {...obj} = this.search.filter;
                 obj[key] = option;
                 //添加到search.filter中
                 this.search.filter = obj;
