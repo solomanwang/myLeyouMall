@@ -92,7 +92,7 @@
                         <span><em>已节省：</em><i>-¥20.00</i></span>
                     </div>
                     <div class="sumbtn">
-                        <a class="sum-btn"  href="getOrderInfo.html"  target="_blank">结算</a>
+                        <a class="sum-btn" @click="toOrderInfo"   target="_blank">结算</a>
                     </div>
                 </div>
             </div>
@@ -333,6 +333,18 @@
                     ly.store.set("carts",this.carts);
                 })
             },
+            toOrderInfo(){
+                //   href="getOrderInfo.html"
+                ly.verifyUser().then(() => {
+                    //将购物车选中的商品放入缓存
+                    ly.store.set("selectedCarts",this.selected);
+                    // 登陆
+                    window.location.href = "/getOrderInfo.html";
+                }).catch(() => {
+                    //  未登录
+                    window.location.href = "/login.html?returnUrl=" + window.location.href;
+                })
+            }
         },
         computed:{
             totalPrice(){   //  计算总价

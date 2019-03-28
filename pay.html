@@ -20,7 +20,7 @@
 		<div class="top"></div>
     	<script type="text/javascript">$(".top").load("shortcut.html");</script>
 		
-		<div class="cart py-container">
+		<div id="payApp" class="cart py-container">
 			<!--logoArea-->
 			<div class="logoArea">
 				<div class="fl logo"><span class="title">收银台</span></div>
@@ -33,8 +33,8 @@
 			
 			<div class="checkout py-container  pay">
 				<div class="checkout-tit">
-					<h4 class="fl tit-txt"><span class="success-icon"></span><span  class="success-info">订单提交成功，请您及时付款！订单号：56789065645</span></h4>
-                    <span class="fr"><em class="sui-lead">应付金额：</em><em  class="orange money">￥17,654</em>元</span>
+					<h4 class="fl tit-txt"><span class="success-icon"></span><span  class="success-info">订单提交成功，请您及时付款！订单号：{{order.orderId}}</span></h4>
+                    <span class="fr"><em class="sui-lead">应付金额：</em><em  class="orange money">￥{{ly.formatPrice(order.actualPay)}}</em>元</span>
 					<div class="clearfix"></div>
 				</div>				
 				<div class="checkout-steps">
@@ -42,7 +42,8 @@
                     <div class="fl sao"> 
                         <p class="red">二维码已过期，刷新页面重新获取二维码。</p>                      
                         <div class="fl code">
-                            <img src="img/erweima.png" alt="">
+                            <!--<img src="img/erweima.png" alt="">-->
+							<div id="qrImage"></div>
                             <div class="saosao">
                                 <p>请使用微信扫一扫</p>
                                 <p>扫描二维码支付</p>
@@ -72,13 +73,85 @@
 <script type="text/javascript" src="js/plugins/jquery.easing/jquery.easing.min.js"></script>
 <script type="text/javascript" src="js/plugins/sui/sui.min.js"></script>
 <script type="text/javascript" src="js/widget/nav.js"></script>
+<script type="text/javascript" src="js/qrcode.min.js"></script>
+<script src="./js/axios.min.js"></script>
+<script src="./js/common.js"></script>
+<script src="./js/vue/vue.js"></script>
 <script type="text/javascript">
-			$(function(){
-				$("ul.payType li").click(function(){
-					$(this).css("border","2px solid #E4393C").siblings().css("border-color","#ddd");
+			// $(function(){
+			// 	$("ul.payType li").click(function(){
+			// 		$(this).css("border","2px solid #E4393C").siblings().css("border-color","#ddd");
+			// 	})
+			// })
+	var payVm = new Vue({
+		el:"#payApp",
+		data:{
+			ly,
+			order:{}
+		},
+        created(){
+            console.log("进入create方法")
+		  ly.verifyUser().then(() => {
+		      //获取订单id
+			  const id = ly.getUrlParam("id");
+			  console.log("id=",id)
+			  //查询订单
+			  ly.http.get("/order-service/order/" + id).then(resp => {
+
+			      this.order = resp.data;
+                  console.log("order=",this.order)
+			      this.order.orderId = id;
+                  //判断订单状态
+				  if (this.order.orderStatus.status !== 1){
+				      alert("订单已经支付");
+				      location.href = "/paysuccess.html?orderId=" + id;
+				  }
+                  //生成订单链接
+				  ly.http.get("order-service/order/url/"+id).then(resp => {
+				      new QRCode(document.getElementById("qrImage"),{
+				          text:resp.data,
+						  width:250,
+						  height:250,
+						  colorDark:"#000000",
+						  colorLight:"#ffffff",
+						  correctLevel:QRCode.CorrectLevel.H
+					  });
+				      console.log(resp)
+				  })
+              }).catch(() => {
+                  alert("为查找到订单信息")
+			  })
+		  }).catch(() => {
+              //未登录，跳转值登录页
+              location.href = "/login.html?returnUrl=" + location.href;
+          })
+            // 开启定时任务，查询付款状态
+            const taskId = setInterval(() => {
+                ly.http.get("/order-service/order/state/" + this.order.orderId)
+                    .then(resp => {
+                        let i = resp.data;
+                        if (i === 1) {
+                            // 付款成功
+                            clearInterval(taskId);
+                            // 跳转到付款成功页
+                            location.href = "/paysuccess.html?orderId=" + this.order.orderId;
+                        } else if (i === 2) {
+                            // 付款失败
+                            clearInterval(taskId);
+                            // 跳转到付款失败页
+                            location.href = "/payfail.html";
+                        }
+                    }).catch((e) => {
+                        alert("支付状态查询失败，请刷新页面")
+					clearInterval(taskId);
 				})
-			})
-		</script>
+            }, 3000);
+		},
+		components:{
+		    shortcut:() => import("./js/pages/shortcut.js")
+		}
+	})
+</script>
 </body>
 
 </html>
