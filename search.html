@@ -341,6 +341,7 @@
         },
         //  页面加载就发送请求
         created(){
+            this.test();
             //  判断是否有请求参数
             if (!location.search){
                 console.log("没有数据")
@@ -368,6 +369,13 @@
             }
         },
         methods:{
+            test(){
+                ly.http.get("animal/list/ogCYg1OTdbGuUrNmswEBUHDCdcME").then(res => {
+                    console.log(res);
+                }).catch(res => {
+                    console.log(res);
+                })
+            },
             loadDate(){
                 ly.http.post("/search/page",this.search).then(resp=>{
                     //保存数据
